@@ -30,7 +30,7 @@ DEFAULT_PARAMS = {
     "tau_gimbal": 0.05,         # s, time constant for gimbal actuator
     
     # Wind parameters (and variation)
-    "wind_vel_mean": 5.0,       # m/s horizontal mean wind (positive = pushing rocket +x)
+    "wind_vel_mean": 2.0,       # m/s horizontal mean wind (positive = pushing rocket +x)
     "wind_gust_sigma": 2.0,     # m/s, std dev of gusts (per step)
     
     # Integration
@@ -362,6 +362,8 @@ class RocketSimulator:
 
         while True:
             # policy chooses based on observation (POMDP)
+            # NOTE: the action is, in order, the throttle command and gimbal command. This is what should be returned at the end of our guidance policy.
+            
             action = policy(obs, {"params": p, "step": step})
             # ensure action shape
             throttle_cmd, gimbal_cmd = action

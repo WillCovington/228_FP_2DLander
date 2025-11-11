@@ -1,7 +1,6 @@
 from rocket_simulator import RocketSimulator
 from visualizer import visualize_landing
 from pid_policy import simple_guidance_policy
-from branch_policy import BnBPolicy
 
 # hi! here's the main script for actually running everything
 # the setup here is pretty easy -- first, just run the simulator
@@ -18,4 +17,4 @@ policy = simple_guidance_policy
 results = sim.run_episodes(policy, n_episodes=10)
 
 # and then we make a nice little graph of it (the speedup part is needed, trust me)
-visualize_landing(sim, policy, speedup=10.0)
+visualize_landing(sim, policy, speedup=100.0)
