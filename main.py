@@ -1,6 +1,7 @@
 from rocket_simulator import RocketSimulator
 from visualizer import visualize_landing
 from pid_policy import simple_guidance_policy, refined_guidance_policy, rollout_guidance_policy
+from kf_wrapper import kf_rollout_guidance_policy
 
 # hi! here's the main script for actually running everything
 # the setup here is pretty easy -- first, just run the simulator
@@ -9,7 +10,7 @@ from pid_policy import simple_guidance_policy, refined_guidance_policy, rollout_
 sim = RocketSimulator(seed=123)
 
 # then you define whatever your policy is (probably easiest just to leave it named as 'policy')
-policy = rollout_guidance_policy
+policy = kf_rollout_guidance_policy
 
 # then everything else down here is probably just best left the same 
 # it runs the simulation with the given policy n_episodes many times
