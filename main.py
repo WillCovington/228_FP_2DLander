@@ -29,13 +29,13 @@ policy = kf_rollout_guidance_policy
 # the '.act' part is just included because there's a method which actually does the finding-best-action stuff
 results = sim.run_episodes(policy, n_episodes=10)
 
-# and then we make a nice little graph of it (the speedup part is needed, trust me)
-visualize_landing(sim, policy, speedup=100.0)
-
-# stop timer and record runtime
+#stop timer and record runtime
 end_time = time.time()
 elapsed = end_time - start_time
 print(f"\nTotal runtime: {elapsed:.2f} seconds")
 
-# close output file
+#close output file
 sys.stdout.close()
+
+# and then we make a nice little graph of it (the speedup part is needed, trust me)
+visualize_landing(sim, policy, speedup=100.0)
