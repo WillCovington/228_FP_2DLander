@@ -21,10 +21,10 @@ class EKFConfig:
     #process noise (tune if needed; higher on velocities/ang rates to absorb wind/lag mismatch)
     q_x: float = 1e-4
     q_z: float = 1e-4
-    q_vx: float = 5e-3
-    q_vz: float = 5e-3
-    q_theta: float = 1e-4
-    q_omega: float = 5e-3
+    q_vx: float = 5e-2
+    q_vz: float = 5e-2
+    q_theta: float = 5e-3
+    q_omega: float = 5e-2
     q_fuel: float = 1e-5
 
 class EKF2DLander:
@@ -79,14 +79,23 @@ class EKF2DLander:
     def predict(self, a_prev: Tuple[float, float]):
         F = self.F_jacobian(self.mu, a_prev)
         self.mu = self.f(self.mu, a_prev)
-        self.Sigma = F @ self.Sigma @ F.T + self.Q
+        self.mu[4] = (self.mu[4] + np.pi) % (2*np.pi) - np.pi
+        Qeff = self.Q * (3.0 if self.mu[1] < 30.0 else 1.0)
+        self.Sigma = F @ self.Sigma @ F.T + Qeff
 
     def update(self, z: np.ndarray):
         #H = I for direct noisy observations
         S = self.Sigma + self.R
-        K = self.Sigma @ np.linalg.inv(S)
+        Sinv = np.linalg.inv(S)
         y = z - self.mu
+        y[4] = (y[4] + np.pi) % (2*np.pi) - np.pi
+        nis = float(y.T @ Sinv @ y)
+        if nis > 18.5:
+            self.Sigma = self.Sigma + 0.1 * self.I
+            return
+        K = self.Sigma @ Sinv
         self.mu = self.mu + K @ y
+        self.mu[4] = (self.mu[4] + np.pi) % (2*np.pi) - np.pi
         self.Sigma = (self.I - K) @ self.Sigma
 
 #keep one EKF instance between calls (per process). Reset when step==0.

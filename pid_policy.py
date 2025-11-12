@@ -186,6 +186,9 @@ def _shape_reward(state: np.ndarray, action: Tuple[float, float], params: Dict) 
         - 0.002 * (theta**2 + theta_dot**2)
     )
 
+import numpy as np
+from typing import Callable, Tuple, Dict
+import math
 
 def simple_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, float]:
     """
