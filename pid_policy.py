@@ -47,3 +47,44 @@ def simple_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, float]:
     gimbal_cmd += np.clip(angle_corr, -params["max_gimbal"], params["max_gimbal"])
 
     return throttle_cmd, gimbal_cmd
+
+def refined_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, float]:
+    p = info["params"]
+    x, z, vx, vz, theta, theta_dot, f = obs
+
+    # --- adaptive vertical velocity target ---
+    if z > 100:
+        vz_target = -min(25.0, 0.2 * z)
+    elif z > 50:
+        vz_target = -10.0
+    else:
+        vz_target = -min(3.0, 0.05 * z)
+
+    # --- throttle control ---
+    k_v = 1.0
+    a_des = (vz_target - vz) * k_v + p["g0"]
+    mass_est = p["dry_mass"] + max(1e-3, f)
+    thrust_required = mass_est * a_des
+    throttle_cmd = thrust_required / p["max_thrust"]
+
+    # flare boost
+    if z < 50.0 and vz < -5.0:
+        throttle_cmd += 0.2
+    throttle_cmd = float(np.clip(throttle_cmd, 0.0, 1.0))
+
+    # --- gimbal control ---
+    kx, kv = 0.1, 0.2
+    ax_des = -(kx * x + kv * vx)
+    T = throttle_cmd * p["max_thrust"]
+    if T < 1.0:
+        gimbal_cmd = 0.0
+    else:
+        gimbal_cmd = math.asin(np.clip((ax_des * mass_est) / (T + 1e-6), -0.99, 0.99)) - theta
+
+    # --- angle stabilization ---
+    k_ang, k_ang_d = 0.5, 0.05
+    angle_corr = -(k_ang * theta + k_ang_d * theta_dot)
+    gimbal_cmd += np.clip(angle_corr, -p["max_gimbal"], p["max_gimbal"])
+    gimbal_cmd = float(np.clip(gimbal_cmd, -p["max_gimbal"], p["max_gimbal"]))
+
+    return throttle_cmd, gimbal_cmd

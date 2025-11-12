@@ -34,7 +34,7 @@ DEFAULT_PARAMS = {
     "wind_gust_sigma": 2.0,     # m/s, std dev of gusts (per step)
     
     # Integration
-    "dt": 0.02,                 # s, simulation timestep
+    "dt": 0.05,                 # s, simulation timestep
     
     # Observation noise
     "obs_pos_sigma": 0.01,      # m

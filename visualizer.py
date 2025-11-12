@@ -3,15 +3,7 @@ import matplotlib.animation as animation
 import numpy as np
 
 def visualize_landing(sim_or_data, policy=None, sim_time=None, dt=None, speedup=1.0, save=False):
-    """
-    Visualize a 2D rocket landing simulation with telemetry overlay,
-    fuel bar, trajectory trace, and grid overlay.
-
-    Supports either:
-        - visualize_landing(sim, policy): runs a new simulation
-        - visualize_landing(result_dict): plays back a stored trajectory
-          from sim.run_episodes() or sim.run_one_episode()
-    """
+    # the code which visualizes the 
     # Detect mode (simulation vs. playback)
     if isinstance(sim_or_data, dict) and "trajectory" in sim_or_data:
         # --- Playback mode ---
