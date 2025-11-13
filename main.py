@@ -22,7 +22,7 @@ start_time = time.time()
 sim = RocketSimulator(seed=123)
 
 # then you define whatever your policy is (probably easiest just to leave it named as 'policy')
-policy = kf_rollout_guidance_policy
+policy = rollout_guidance_policy
 
 # then everything else down here is probably just best left the same 
 # it runs the simulation with the given policy n_episodes many times
