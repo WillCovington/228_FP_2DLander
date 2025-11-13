@@ -409,12 +409,27 @@ class RocketSimulator:
     def run_episodes(self, policy: Callable, n_episodes: int, save_to: str = None):
         # this runs a bunch of single episodes and then saves the output to a npz file
         results = []
+        landing_tilts = []
+        landing_vxs = []
+        landing_vzs = []
+
         for i in range(n_episodes):
             res = self.run_one_episode(policy)
             results.append(res)
 
-            print(f"Episode {i+1}: total reward = {res['final_info']['total_reward']:.2f}, "
-                f"success = {res['final_info']['terminal']['success']}")
+            final_state = res["trajectory"]["states"][-1]
+            x, z, vx, vz, theta, theta_dot, f = final_state #access velocity and tilt angle
+
+            landing_tilts.append(theta)
+            landing_vxs.append(vx)
+            landing_vzs.append(vz)
+
+            print(
+                f"Episode {i+1}: total reward = {res['final_info']['total_reward']:.2f}, "
+                f"success = {res['final_info']['terminal']['success']}, "
+                f"tilt = {np.rad2deg(theta):.2f} deg, "
+                f"vx = {vx:.2f} m/s, vz = {vz:.2f} m/s"
+            )
 
             if (i+1) % 50 == 0:
                 print(f"Completed {i+1}/{n_episodes}")
@@ -431,6 +446,10 @@ class RocketSimulator:
         crash_rate = np.mean(crashes) * 100
         avg_fuel = np.mean(fuel_used)
 
+        mean_tilt_deg = np.rad2deg(np.mean(landing_tilts))
+        mean_vx = np.mean(landing_vxs)
+        mean_vz = np.mean(landing_vzs)
+
         print("\n=== Simulation Summary ===")
         print(f"Episodes run:       {len(results)}")
         print(f"Average reward:     {avg_reward:.2f}")
@@ -438,6 +457,11 @@ class RocketSimulator:
         print(f"Success rate:       {success_rate:.1f}%")
         print(f"Crash rate:         {crash_rate:.1f}%")
         print(f"Average fuel used:  {avg_fuel:.2f} kg")
+
+        #add in final velocity and tilt
+        print(f"Mean landing tilt angle:    {mean_tilt_deg:.2f} deg")
+        print(f"Mean landing velocity (x):      {mean_vx:.2f} m/s")
+        print(f"Mean landing velocity (z):      {mean_vz:.2f} m/s")
         print("==========================\n")
 
         if save_to:

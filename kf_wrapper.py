@@ -29,6 +29,15 @@ class EKFConfig:
 
 class EKF2DLander:
     def __init__(self, params: Dict, cfg: EKFConfig = EKFConfig()):
+        '''Initialize the Extended Kalman Filter (EKF) for the 2D rocket lander.
+        Builds the measurement noise covariance R from sensor sigmas and
+        the process noise covariance Q from the EKFConfig.
+        Initializes the state mean and covariance.
+        @param: dict: Rocket and environment parameters, including sensor noise,
+        dynamics constants, and wind mean.
+        @param: cfg: EKFConfig: Confifugration for the EKF numerical Jacobian step
+        and process noise levels. 
+        '''
         self.p = params
         self.cfg = cfg
         self.n = 7
@@ -52,6 +61,11 @@ class EKF2DLander:
         self.last_action = (0.0, 0.0)
 
     def reset(self, z0: np.ndarray, P0: np.ndarray = None):
+        '''Reset the EKF state estimate and covariance.
+        @param: z0: np.ndarray: Initial state estimate (7-dim state vector)
+        @param: P0: nd.ndarray (optional): Initial covariance matrix. If none,
+        default diagonal covariance matrix is used. Also resets the stored last action used for prediction.
+        '''
         self.mu = z0.astype(float).copy()
         self.Sigma = P0.copy() if P0 is not None else np.diag([1.0,1.0,1.0,1.0,0.5,0.5,5.0])
         self.last_action = (0.0, 0.0)
