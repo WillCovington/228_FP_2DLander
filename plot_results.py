@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Path to your log file
-LOG_PATH = "trials/baseline_policy2.txt"
+LOG_PATH = "trials/refined_guidance_policy.txt"
 
 def parse_log(path):
     episode_ids = []
@@ -111,7 +111,6 @@ def parse_log(path):
         "reward_variance": reward_variance
     }
 
-
 def make_plots(stats):
     episode_ids = stats["episode_ids"]
     episode_rewards = stats["episode_rewards"]
@@ -124,6 +123,15 @@ def make_plots(stats):
     episode_tilts_deg = stats["episode_tilts_deg"]
     episode_vx = stats["episode_vx"]
     episode_vz = stats["episode_vz"]
+
+    # ===== Variances of tilt, vx, vz =====
+    def safe_var(values):
+        arr = np.array([v for v in values if v is not None])
+        return float(np.var(arr)) if arr.size > 0 else None
+
+    tilt_variance = safe_var(episode_tilts_deg)
+    vx_variance = safe_var(episode_vx)
+    vz_variance = safe_var(episode_vz)
 
     # Helper: label a horizontal line near (x_ref, y_val)
     def label_line(ax, x_ref, y_val, text):
@@ -148,8 +156,8 @@ def make_plots(stats):
     # ============================================================
     fig, axes = plt.subplots(2, 3, figsize=(15, 8))
     fig.suptitle(
-        f"KF Rollout Policy Summary (Runtime: {runtime:.2f} s)"
-        if runtime is not None else "KF Rollout Policy Summary",
+        f"Policy Summary (Runtime: {runtime:.2f} s)"
+        if runtime is not None else "Policy Summary",
         fontsize=14
     )
 
@@ -290,6 +298,59 @@ def make_plots(stats):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
+    # ============================================================
+    # Figure 3: Variances of tilt, vx, vz
+    # ============================================================
+    fig3, axes3 = plt.subplots(1, 3, figsize=(15, 4))
+    fig3.suptitle("Landing Metric Variances", fontsize=14)
+
+    # Tilt variance
+    ax_tilt = axes3[0]
+    if tilt_variance is not None:
+        ax_tilt.bar([0], [tilt_variance], width=0.03, edgecolor="black")
+        ax_tilt.axhline(tilt_variance, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_tilt, x_ref=0.05, y_val=tilt_variance, text=f"{tilt_variance:.4f}")
+        ax_tilt.set_xticks([0])
+        ax_tilt.set_xticklabels(["Tilt"])
+        ax_tilt.set_xlim(-0.5, 0.5)
+        ax_tilt.set_ylabel("Var(Tilt) (deg^2)")
+        ax_tilt.set_title("Tilt Variance")
+    else:
+        ax_tilt.text(0.5, 0.5, "No tilt data", ha="center", va="center")
+        ax_tilt.set_axis_off()
+
+    # vx variance
+    ax_vx = axes3[1]
+    if vx_variance is not None:
+        ax_vx.bar([0], [vx_variance], width=0.03, edgecolor="black")
+        ax_vx.axhline(vx_variance, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vx, x_ref=0.05, y_val=vx_variance, text=f"{vx_variance:.4f}")
+        ax_vx.set_xticks([0])
+        ax_vx.set_xticklabels(["vx"])
+        ax_vx.set_xlim(-0.5, 0.5)
+        ax_vx.set_ylabel("Var(vx) (m^2/s^2)")
+        ax_vx.set_title("vx Variance")
+    else:
+        ax_vx.text(0.5, 0.5, "No vx data", ha="center", va="center")
+        ax_vx.set_axis_off()
+
+    # vz variance
+    ax_vz = axes3[2]
+    if vz_variance is not None:
+        ax_vz.bar([0], [vz_variance], width=0.03, edgecolor="black")
+        ax_vz.axhline(vz_variance, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vz, x_ref=0.05, y_val=vz_variance, text=f"{vz_variance:.4f}")
+        ax_vz.set_xticks([0])
+        ax_vz.set_xticklabels(["vz"])
+        ax_vz.set_xlim(-0.5, 0.5)
+        ax_vz.set_ylabel("Var(vz) (m^2/s^2)")
+        ax_vz.set_title("vz Variance")
+    else:
+        ax_vz.text(0.5, 0.5, "No vz data", ha="center", va="center")
+        ax_vz.set_axis_off()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
 
 if __name__ == "__main__":
     stats = parse_log(LOG_PATH)
