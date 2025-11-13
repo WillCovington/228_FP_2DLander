@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Path to your log file
-LOG_PATH = "trials/refined_guidance_policy.txt"
+LOG_PATH = "trials/rollout_policy.txt"
 
 def parse_log(path):
     episode_ids = []
