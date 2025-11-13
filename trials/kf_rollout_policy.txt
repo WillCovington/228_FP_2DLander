@@ -1,0 +1,32 @@
+Episode finished after 2493 steps. Total reward = -1693.73
+Episode 1: total reward = -1693.73, success = True
+Episode finished after 2674 steps. Total reward = -1699.23
+Episode 2: total reward = -1699.23, success = True
+Episode finished after 2485 steps. Total reward = -1704.83
+Episode 3: total reward = -1704.83, success = True
+Episode finished after 2545 steps. Total reward = -1647.69
+Episode 4: total reward = -1647.69, success = True
+Episode finished after 2677 steps. Total reward = -1698.57
+Episode 5: total reward = -1698.57, success = True
+Episode finished after 2696 steps. Total reward = -1703.98
+Episode 6: total reward = -1703.98, success = True
+Episode finished after 2790 steps. Total reward = -1813.80
+Episode 7: total reward = -1813.80, success = True
+Episode finished after 2742 steps. Total reward = -1707.12
+Episode 8: total reward = -1707.12, success = True
+Episode finished after 2474 steps. Total reward = -1658.18
+Episode 9: total reward = -1658.18, success = True
+Episode finished after 2624 steps. Total reward = -1746.81
+Episode 10: total reward = -1746.81, success = True
+
+=== Simulation Summary ===
+Episodes run:       10
+Average reward:     -1707.39
+Median reward:      -1701.60
+Success rate:       100.0%
+Crash rate:         0.0%
+Average fuel used:  70.84 kg
+==========================
+
+
+Total runtime: 2920.09 seconds

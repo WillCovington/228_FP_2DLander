@@ -1,0 +1,35 @@
+Episode finished after 1922 steps. Total reward = -1701.13
+Episode 1: total reward = -1701.13, success = True, tilt = -0.15 deg, vx = -0.00 m/s, vz = -0.02 m/s
+Episode finished after 1961 steps. Total reward = -1870.16
+Episode 2: total reward = -1870.16, success = True, tilt = -0.08 deg, vx = -0.02 m/s, vz = -0.03 m/s
+Episode finished after 1990 steps. Total reward = -1748.69
+Episode 3: total reward = -1748.69, success = True, tilt = -0.10 deg, vx = 0.01 m/s, vz = -0.02 m/s
+Episode finished after 1992 steps. Total reward = -1799.97
+Episode 4: total reward = -1799.97, success = True, tilt = -0.09 deg, vx = 0.02 m/s, vz = -0.03 m/s
+Episode finished after 1998 steps. Total reward = -1842.04
+Episode 5: total reward = -1842.04, success = True, tilt = -0.19 deg, vx = -0.00 m/s, vz = -0.03 m/s
+Episode finished after 1933 steps. Total reward = -2265.04
+Episode 6: total reward = -2265.04, success = True, tilt = -0.27 deg, vx = 0.01 m/s, vz = -0.02 m/s
+Episode finished after 1963 steps. Total reward = -1638.03
+Episode 7: total reward = -1638.03, success = True, tilt = -0.16 deg, vx = 0.02 m/s, vz = -0.03 m/s
+Episode finished after 1933 steps. Total reward = -1513.90
+Episode 8: total reward = -1513.90, success = True, tilt = -0.21 deg, vx = 0.00 m/s, vz = -0.03 m/s
+Episode finished after 1927 steps. Total reward = -1539.39
+Episode 9: total reward = -1539.39, success = True, tilt = -0.16 deg, vx = 0.01 m/s, vz = -0.02 m/s
+Episode finished after 1936 steps. Total reward = -1519.77
+Episode 10: total reward = -1519.77, success = True, tilt = -0.26 deg, vx = 0.01 m/s, vz = -0.03 m/s
+
+=== Simulation Summary ===
+Episodes run:       10
+Average reward:     -1743.81
+Median reward:      -1724.91
+Success rate:       100.0%
+Crash rate:         0.0%
+Average fuel used:  55.29 kg
+Mean landing tilt angle:    -0.17 deg
+Mean landing velocity (x):      0.01 m/s
+Mean landing velocity (z):      -0.03 m/s
+==========================
+
+
+Total runtime: 5.71 seconds
