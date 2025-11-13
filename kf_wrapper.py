@@ -33,9 +33,9 @@ class EKF2DLander:
         Builds the measurement noise covariance R from sensor sigmas and
         the process noise covariance Q from the EKFConfig.
         Initializes the state mean and covariance.
-        @param: dict: Rocket and environment parameters, including sensor noise,
+        @param: (dict): Rocket and environment parameters, including sensor noise,
         dynamics constants, and wind mean.
-        @param: cfg: EKFConfig: Confifugration for the EKF numerical Jacobian step
+        @param: cfg (EKFConfig): Confifugration for the EKF numerical Jacobian step
         and process noise levels. 
         '''
         self.p = params
@@ -71,6 +71,11 @@ class EKF2DLander:
         self.last_action = (0.0, 0.0)
 
     def f(self, x: np.ndarray, a: Tuple[float, float]) -> np.ndarray:
+        '''Rocket motion model used by the EKF predict step.
+        @param: x (np.ndarray): Current state.
+        @param: a (float, float): Control input (throttle, gimbal angle).
+        @return (np.ndarray): Predicted next state after one timestep, integrated using RK4.
+        '''
         #one-step motion using rk4; use mean wind for predict (NOTE: zero-mean gust absorbed by Q)
         wind = self.p["wind_vel_mean"]
         dt = self.p["dt"]
@@ -80,6 +85,11 @@ class EKF2DLander:
         return nx
 
     def F_jacobian(self, x: np.ndarray, a: Tuple[float, float]) -> np.ndarray:
+        ''' Compute the Jacobian of the motion model f with respect to the state.
+        @param: x (np.ndarray): State around which to linearize.
+        @param: a (float, float): Control input at which the Jacobian is evaluated.
+        @return (np.ndarray): The 7x7 Jacobian matrix F.
+        '''
         n, eps = self.n, self.cfg.eps
         F = np.zeros((n, n), dtype=float)
         fx = self.f(x, a)
@@ -91,13 +101,24 @@ class EKF2DLander:
         return F
 
     def predict(self, a_prev: Tuple[float, float]):
-        F = self.F_jacobian(self.mu, a_prev)
+        '''EKF prediction step: propagate state estimate and covariance forward. 
+        Computes Jacobian F, predicts next state via nonlinear model f(), updates
+        covariance via F \sum transpose(F) + Q, and wraps angle to [-pi, pi].
+        @param: a_prev (float, float): Control input applied at the previous timestep
+        '''
+        F = self.F_jacobian(self.mu, a_prev) #compute Jacobian F
         self.mu = self.f(self.mu, a_prev)
         self.mu[4] = (self.mu[4] + np.pi) % (2*np.pi) - np.pi
         Qeff = self.Q * (3.0 if self.mu[1] < 30.0 else 1.0)
         self.Sigma = F @ self.Sigma @ F.T + Qeff
 
     def update(self, z: np.ndarray):
+        '''EKF update step: fuse the noisy observation with the predicted state.
+        @param: z (np.ndarray): noisy sensor measurement (direct observation of all state components).
+        Uses H = I since observations directly correspond to the state, computes innovation, innovation 
+        covariance, and Kalman gain, applies a chi-square NIS gate to reject outlier measurements,
+        updates both state mean and covariance, and ensures angle remains wrapped to [-pi, pi].
+        '''
         #H = I for direct noisy observations
         S = self.Sigma + self.R
         Sinv = np.linalg.inv(S)
@@ -114,6 +135,14 @@ class EKF2DLander:
 
 #keep one EKF instance between calls (per process). Reset when step==0.
 def kf_rollout_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, float]:
+    '''Guidance policy that combines EKF state estimation with rollout control.
+    Maintains a persistent EKF instance across calls. Predicts using the previous action,
+    updates using the new noisy observation, runs the Monte-Carlo rollout policy on the
+    filtered state, and stores the selected action for the next predict step.
+    @param: obs (np.ndarray): Current noisy observations from sensors
+    @param info (dict) Simulation metadata including parameters and timestep index.
+    @return (float, float): selected (throttle, gimbal) command.
+    '''
     params = info["params"]
     step = info.get("step", 0)
 
