@@ -12,4 +12,4 @@ The codebase for our 228 Final Project which involves developing a policy for ha
 
 # Overleaf Docs
 - Project Status Update: https://www.overleaf.com/5524244129bmmtxmrmnrsj#020416
-- Final Report: 
+- Final Report: https://www.overleaf.com/9493112257fywhmrzgjsjm#4a924b
