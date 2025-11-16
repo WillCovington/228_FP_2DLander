@@ -9,7 +9,7 @@ velocity, the variance of the tilt, and the variance of the velocity.
 '''
 
 #path to your log file
-LOG_PATH = "trials/kf_rollout_policy.txt"
+LOG_PATH = "trials/refined_guidance_policy.txt"
 
 def parse_log(path):
     episode_ids = []
@@ -299,51 +299,57 @@ def make_plots(stats):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-    #figure 3: Variances of tilt, vx, vz
+    #figure 3: Means of tilt, vx, vz  (changed from variances to means)
     fig3, axes3 = plt.subplots(1, 3, figsize=(15, 4))
-    fig3.suptitle("Landing Metric Variances", fontsize=14)
+    fig3.suptitle("Landing Metric Means", fontsize=14)
 
-    #Tilt variance
+    #Tilt mean
     ax_tilt = axes3[0]
-    if tilt_variance is not None:
-        ax_tilt.bar([0], [tilt_variance], width=0.03, edgecolor="black")
-        ax_tilt.axhline(tilt_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_tilt, x_ref=0.05, y_val=tilt_variance, text=f"{tilt_variance:.4f}")
+    arr_tilt = np.array([v for v in episode_tilts_deg if v is not None])
+    if arr_tilt.size > 0:
+        tilt_mean = float(np.mean(arr_tilt))
+        ax_tilt.bar([0], [tilt_mean], width=0.03, edgecolor="black")
+        ax_tilt.axhline(tilt_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_tilt, x_ref=0.05, y_val=tilt_mean, text=f"{tilt_mean:.4f}")
         ax_tilt.set_xticks([0])
         ax_tilt.set_xticklabels(["Tilt"])
         ax_tilt.set_xlim(-0.5, 0.5)
-        ax_tilt.set_ylabel("Var(Tilt) (deg^2)")
-        ax_tilt.set_title("Tilt Variance")
+        ax_tilt.set_ylabel("Mean Tilt (deg)")
+        ax_tilt.set_title("Tilt Mean")
     else:
         ax_tilt.text(0.5, 0.5, "No tilt data", ha="center", va="center")
         ax_tilt.set_axis_off()
 
-    #vx variance
+    #vx mean
     ax_vx = axes3[1]
-    if vx_variance is not None:
-        ax_vx.bar([0], [vx_variance], width=0.03, edgecolor="black")
-        ax_vx.axhline(vx_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_vx, x_ref=0.05, y_val=vx_variance, text=f"{vx_variance:.4f}")
+    arr_vx = np.array([v for v in episode_vx if v is not None])
+    if arr_vx.size > 0:
+        vx_mean = float(np.mean(arr_vx))
+        ax_vx.bar([0], [vx_mean], width=0.03, edgecolor="black")
+        ax_vx.axhline(vx_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vx, x_ref=0.05, y_val=vx_mean, text=f"{vx_mean:.4f}")
         ax_vx.set_xticks([0])
         ax_vx.set_xticklabels(["vx"])
         ax_vx.set_xlim(-0.5, 0.5)
-        ax_vx.set_ylabel("Var(vx) (m^2/s^2)")
-        ax_vx.set_title("vx Variance")
+        ax_vx.set_ylabel("Mean vx (m/s)")
+        ax_vx.set_title("vx Mean")
     else:
         ax_vx.text(0.5, 0.5, "No vx data", ha="center", va="center")
         ax_vx.set_axis_off()
 
-    #vz variance
+    #vz mean
     ax_vz = axes3[2]
-    if vz_variance is not None:
-        ax_vz.bar([0], [vz_variance], width=0.03, edgecolor="black")
-        ax_vz.axhline(vz_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_vz, x_ref=0.05, y_val=vz_variance, text=f"{vz_variance:.4f}")
+    arr_vz = np.array([v for v in episode_vz if v is not None])
+    if arr_vz.size > 0:
+        vz_mean = float(np.mean(arr_vz))
+        ax_vz.bar([0], [vz_mean], width=0.03, edgecolor="black")
+        ax_vz.axhline(vz_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vz, x_ref=0.05, y_val=vz_mean, text=f"{vz_mean:.4f}")
         ax_vz.set_xticks([0])
         ax_vz.set_xticklabels(["vz"])
         ax_vz.set_xlim(-0.5, 0.5)
-        ax_vz.set_ylabel("Var(vz) (m^2/s^2)")
-        ax_vz.set_title("vz Variance")
+        ax_vz.set_ylabel("Mean vz (m/s)")
+        ax_vz.set_title("vz Mean")
     else:
         ax_vz.text(0.5, 0.5, "No vz data", ha="center", va="center")
         ax_vz.set_axis_off()
