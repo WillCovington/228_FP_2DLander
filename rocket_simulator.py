@@ -364,7 +364,8 @@ class RocketSimulator:
             # policy chooses based on observation (POMDP)
             # NOTE: the action is, in order, the throttle command and gimbal command. This is what should be returned at the end of our guidance policy.
             
-            action = policy(obs, {"params": p, "step": step})
+            info_for_policy = {"params": p, "step": step, "true_state": state}
+            action = policy(obs, info_for_policy)
             # ensure action shape
             throttle_cmd, gimbal_cmd = action
 

@@ -32,4 +32,4 @@ Mean landing velocity (z):      -0.19 m/s
 ==========================
 
 
-Total runtime: 4010.04 seconds
+Total runtime: 3506.72 seconds

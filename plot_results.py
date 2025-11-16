@@ -2,15 +2,21 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Path to your log file
-LOG_PATH = "trials/rollout_policy.txt"
+'''This file contains data processing and plotting code for analyzing our results.
+We plot the reward per episode, the average reward, the rewarad variance, the 
+average fuel used, the crash rate, the landing tilt per episode, the landing 
+velocity, the variance of the tilt, and the variance of the velocity. 
+'''
+
+#path to your log file
+LOG_PATH = "trials/refined_guidance_policy.txt"
 
 def parse_log(path):
     episode_ids = []
     episode_rewards = []
     episode_success = []
 
-    # per-episode landing metrics
+    #per-episode landing metrics
     episode_tilts_deg = []
     episode_vx = []
     episode_vz = []
@@ -20,13 +26,13 @@ def parse_log(path):
     crash_rate = None
     runtime = None
 
-    last_episode_index = None  # index of the most recently seen episode
+    last_episode_index = None  #index of the most recently seen episode
 
     with open(path, "r") as f:
         for line in f:
             line = line.strip()
 
-            # --- Episode line (reward + success) ---
+            #detect metrics per episodes with a regex
             m_ep = re.match(
                 r"Episode\s+(\d+):\s*total reward\s*=\s*([\-0-9\.]+),\s*success\s*=\s*(True|False)",
                 line
@@ -40,18 +46,17 @@ def parse_log(path):
                 episode_rewards.append(rew)
                 episode_success.append(success)
 
-                # placeholders for this episode's tilt/vels
+                #placeholders for this episode's tilt/vels
                 episode_tilts_deg.append(None)
                 episode_vx.append(None)
                 episode_vz.append(None)
 
                 last_episode_index = len(episode_ids) - 1
 
-                # fall through to also parse tilt/vx/vz if they’re on the same line
-                # (no continue here)
+                #fall through to also parse tilt/vx/vz if they’re on the same line (no continue here)
 
-            # --- Look for tilt / vx / vz on ANY line (including Episode line) ---
-            # Attach them to the last seen episode, if any.
+            #look for tilt / vx / vz on ANY line (including Episode line)
+            #attach them to the last seen episode (if any).
             if last_episode_index is not None:
                 mt = re.search(r"tilt\s*=\s*([\-0-9\.]+)\s*deg", line)
                 mvx = re.search(r"vx\s*=\s*([\-0-9\.]+)\s*m/s", line)
@@ -64,7 +69,7 @@ def parse_log(path):
                 if mvz:
                     episode_vz[last_episode_index] = float(mvz.group(1))
 
-            # --- Summary lines ---
+            #regex for "Summary" lines:
             m_avg_r = re.match(r"Average reward:\s*([\-0-9\.]+)", line)
             if m_avg_r:
                 avg_reward = float(m_avg_r.group(1))
@@ -85,7 +90,7 @@ def parse_log(path):
                 runtime = float(m_runtime.group(1))
                 continue
 
-    # Fallback averages
+    #fallback averages
     if avg_reward is None and episode_rewards:
         avg_reward = np.mean(episode_rewards)
 
@@ -94,7 +99,7 @@ def parse_log(path):
         n_crashes = sum(1 for s in episode_success if not s)
         crash_rate = 100.0 * n_crashes / n_episodes if n_episodes > 0 else 0.0
 
-    # Reward variance
+    #get reward variance
     reward_variance = np.var(episode_rewards) if episode_rewards else None
 
     return {
@@ -124,7 +129,7 @@ def make_plots(stats):
     episode_vx = stats["episode_vx"]
     episode_vz = stats["episode_vz"]
 
-    # ===== Variances of tilt, vx, vz =====
+    #Variances of tilt, vx, vz
     def safe_var(values):
         arr = np.array([v for v in values if v is not None])
         return float(np.var(arr)) if arr.size > 0 else None
@@ -133,7 +138,7 @@ def make_plots(stats):
     vx_variance = safe_var(episode_vx)
     vz_variance = safe_var(episode_vz)
 
-    # Helper: label a horizontal line near (x_ref, y_val)
+    #helper: label a horizontal line near (x_ref, y_val)
     def label_line(ax, x_ref, y_val, text):
         if y_val == 0:
             y_text = 0.02
@@ -151,9 +156,7 @@ def make_plots(stats):
             color="green", fontsize=10, fontweight="bold", va=va
         )
 
-    # ============================================================
-    # Figure 1: Rewards + aggregate metrics
-    # ============================================================
+    #Figure 1: Rewards + aggregate metrics
     fig, axes = plt.subplots(2, 3, figsize=(15, 8))
     fig.suptitle(
         f"Policy Summary (Runtime: {runtime:.2f} s)"
@@ -161,7 +164,7 @@ def make_plots(stats):
         fontsize=14
     )
 
-    # 1) Reward per episode (thin-ish bars + line)
+    #Reward per episode (thin-ish bars + line)
     ax0 = axes[0, 0]
     if episode_ids and episode_rewards:
         bar_width = 0.3
@@ -188,7 +191,7 @@ def make_plots(stats):
         ax0.text(0.5, 0.5, "No episode data", ha="center", va="center")
         ax0.set_axis_off()
 
-    # 2) Average reward
+    #Average reward
     ax1 = axes[0, 1]
     if avg_reward is not None:
         ax1.bar([0], [avg_reward], width=0.03, edgecolor="black")
@@ -203,7 +206,7 @@ def make_plots(stats):
         ax1.text(0.5, 0.5, "No average reward", ha="center", va="center")
         ax1.set_axis_off()
 
-    # 3) Reward variance
+    #Reward variance
     ax2 = axes[0, 2]
     if reward_variance is not None:
         ax2.bar([0], [reward_variance], width=0.03, edgecolor="black")
@@ -218,7 +221,7 @@ def make_plots(stats):
         ax2.text(0.5, 0.5, "No variance data", ha="center", va="center")
         ax2.set_axis_off()
 
-    # 4) Average fuel
+    #Average fuel
     ax3 = axes[1, 0]
     if avg_fuel is not None:
         ax3.bar([0], [avg_fuel], width=0.03, edgecolor="black")
@@ -233,7 +236,7 @@ def make_plots(stats):
         ax3.text(0.5, 0.5, "No fuel data", ha="center", va="center")
         ax3.set_axis_off()
 
-    # 5) Crash rate
+    #Crash rate
     ax4 = axes[1, 1]
     if crash_rate is not None:
         ax4.bar([0], [crash_rate], width=0.03, edgecolor="black")
@@ -263,9 +266,7 @@ def make_plots(stats):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-    # ============================================================
-    # Figure 2: Per-episode tilt and velocities
-    # ============================================================
+    #figure 2: tilt and velocities per episode
     fig2, axes2 = plt.subplots(1, 3, figsize=(15, 4))
     fig2.suptitle("Landing State per Episode", fontsize=14)
 
@@ -298,53 +299,57 @@ def make_plots(stats):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-    # ============================================================
-    # Figure 3: Variances of tilt, vx, vz
-    # ============================================================
+    #figure 3: Means of tilt, vx, vz  (changed from variances to means)
     fig3, axes3 = plt.subplots(1, 3, figsize=(15, 4))
-    fig3.suptitle("Landing Metric Variances", fontsize=14)
+    fig3.suptitle("Landing Metric Means", fontsize=14)
 
-    # Tilt variance
+    #Tilt mean
     ax_tilt = axes3[0]
-    if tilt_variance is not None:
-        ax_tilt.bar([0], [tilt_variance], width=0.03, edgecolor="black")
-        ax_tilt.axhline(tilt_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_tilt, x_ref=0.05, y_val=tilt_variance, text=f"{tilt_variance:.4f}")
+    arr_tilt = np.array([v for v in episode_tilts_deg if v is not None])
+    if arr_tilt.size > 0:
+        tilt_mean = float(np.mean(arr_tilt))
+        ax_tilt.bar([0], [tilt_mean], width=0.03, edgecolor="black")
+        ax_tilt.axhline(tilt_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_tilt, x_ref=0.05, y_val=tilt_mean, text=f"{tilt_mean:.4f}")
         ax_tilt.set_xticks([0])
         ax_tilt.set_xticklabels(["Tilt"])
         ax_tilt.set_xlim(-0.5, 0.5)
-        ax_tilt.set_ylabel("Var(Tilt) (deg^2)")
-        ax_tilt.set_title("Tilt Variance")
+        ax_tilt.set_ylabel("Mean Tilt (deg)")
+        ax_tilt.set_title("Tilt Mean")
     else:
         ax_tilt.text(0.5, 0.5, "No tilt data", ha="center", va="center")
         ax_tilt.set_axis_off()
 
-    # vx variance
+    #vx mean
     ax_vx = axes3[1]
-    if vx_variance is not None:
-        ax_vx.bar([0], [vx_variance], width=0.03, edgecolor="black")
-        ax_vx.axhline(vx_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_vx, x_ref=0.05, y_val=vx_variance, text=f"{vx_variance:.4f}")
+    arr_vx = np.array([v for v in episode_vx if v is not None])
+    if arr_vx.size > 0:
+        vx_mean = float(np.mean(arr_vx))
+        ax_vx.bar([0], [vx_mean], width=0.03, edgecolor="black")
+        ax_vx.axhline(vx_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vx, x_ref=0.05, y_val=vx_mean, text=f"{vx_mean:.4f}")
         ax_vx.set_xticks([0])
         ax_vx.set_xticklabels(["vx"])
         ax_vx.set_xlim(-0.5, 0.5)
-        ax_vx.set_ylabel("Var(vx) (m^2/s^2)")
-        ax_vx.set_title("vx Variance")
+        ax_vx.set_ylabel("Mean vx (m/s)")
+        ax_vx.set_title("vx Mean")
     else:
         ax_vx.text(0.5, 0.5, "No vx data", ha="center", va="center")
         ax_vx.set_axis_off()
 
-    # vz variance
+    #vz mean
     ax_vz = axes3[2]
-    if vz_variance is not None:
-        ax_vz.bar([0], [vz_variance], width=0.03, edgecolor="black")
-        ax_vz.axhline(vz_variance, color="green", linestyle="-", linewidth=1.5)
-        label_line(ax_vz, x_ref=0.05, y_val=vz_variance, text=f"{vz_variance:.4f}")
+    arr_vz = np.array([v for v in episode_vz if v is not None])
+    if arr_vz.size > 0:
+        vz_mean = float(np.mean(arr_vz))
+        ax_vz.bar([0], [vz_mean], width=0.03, edgecolor="black")
+        ax_vz.axhline(vz_mean, color="green", linestyle="-", linewidth=1.5)
+        label_line(ax_vz, x_ref=0.05, y_val=vz_mean, text=f"{vz_mean:.4f}")
         ax_vz.set_xticks([0])
         ax_vz.set_xticklabels(["vz"])
         ax_vz.set_xlim(-0.5, 0.5)
-        ax_vz.set_ylabel("Var(vz) (m^2/s^2)")
-        ax_vz.set_title("vz Variance")
+        ax_vz.set_ylabel("Mean vz (m/s)")
+        ax_vz.set_title("vz Mean")
     else:
         ax_vz.text(0.5, 0.5, "No vz data", ha="center", va="center")
         ax_vz.set_axis_off()
@@ -353,6 +358,7 @@ def make_plots(stats):
     plt.show()
 
 if __name__ == "__main__":
+    '''Execute parser and plotter!'''
     stats = parse_log(LOG_PATH)
     print("Parsed stats:", stats)
     print(f"Reward Variance: {stats['reward_variance']}")
