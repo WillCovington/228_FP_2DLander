@@ -3,6 +3,7 @@ from typing import Tuple, Dict
 from dataclasses import dataclass
 from rocket_simulator import rk4_step  #motion model
 from pid_policy import rollout_guidance_policy
+import csv  # <-- ADDED for CSV logging
 
 '''Contains the Kalman filter for the rollout policy. This class essentially
 acts as a wrapper class for the rollout policy. The Kalman
@@ -150,6 +151,8 @@ def kf_rollout_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, floa
     if not hasattr(kf_rollout_guidance_policy, "_ekf") or step == 0:
         kf_rollout_guidance_policy._ekf = EKF2DLander(params)
         kf_rollout_guidance_policy._ekf.reset(obs, np.diag([10,10,5,5,1,1,20]))
+        # ADDED: flag to control one-time CSV header write
+        kf_rollout_guidance_policy._csv_initialized = False
 
     ekf = kf_rollout_guidance_policy._ekf
 
@@ -159,6 +162,31 @@ def kf_rollout_guidance_policy(obs: np.ndarray, info: Dict) -> Tuple[float, floa
     #Step 2: update with current observation
     ekf.update(obs)
     mu = ekf.mu  # state estimate
+
+    #log true vs estimated state to CSV for results/data analysis:
+    true_state = info.get("true_state", None)
+    if true_state is not None:
+        true_state = np.asarray(true_state, dtype=float)
+        est_state = mu.copy()
+        err = est_state - true_state
+
+        filename = "data/KF_state_data.csv"
+        # write header once
+        if not kf_rollout_guidance_policy._csv_initialized:
+            names = ["x", "z", "vx", "vz", "theta", "theta_dot", "fuel"]
+            header = (["step"] +
+                      [f"true_{n}" for n in names] +
+                      [f"est_{n}" for n in names] +
+                      [f"err_{n}" for n in names])
+            with open(filename, mode="w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(header)
+            kf_rollout_guidance_policy._csv_initialized = True
+
+        row = [step] + true_state.tolist() + est_state.tolist() + err.tolist()
+        with open(filename, mode="a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(row)
 
     #Step 3: plan using the estimated state (reuse your rollout as-is)
     #We pass the same info dict so rollout uses the same params.
