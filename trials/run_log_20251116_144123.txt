@@ -1,0 +1,4 @@
+Episode finished after 2491 steps. Total reward = -1700.91
+Episode 1: total reward = -1700.91, success = True, tilt = -1.84 deg, vx = -0.03 m/s, vz = -0.22 m/s
+Episode finished after 2587 steps. Total reward = -1682.93
+Episode 2: total reward = -1682.93, success = True, tilt = 1.43 deg, vx = 0.02 m/s, vz = -0.17 m/s
